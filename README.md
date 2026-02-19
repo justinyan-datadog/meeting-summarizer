@@ -72,6 +72,28 @@ All settings are stored in `.confluence_config.json` (created by `setup.sh`):
 
 The `space_key` and `parent_page_id` are automatically extracted from the Confluence page URL you provide during setup.
 
+## Customizing the Prompt
+
+The prompt that tells Claude how to analyze transcripts lives in `analyze_and_upload.py` (line ~61). The current prompt is:
+
+```
+You are an expert meeting note-taker.
+
+Summarize the following meeting transcript clearly and concisely. Focus on:
+
+- Key decisions made
+- Important discussion points and rationale
+- Action items, including owner and deadline if mentioned
+- Open questions or unresolved issues
+
+Structure the summary with clear section headers. Use bullet points where helpful.
+Do not include small talk, repetition, or off-topic discussion.
+```
+
+It asks Claude to return four sections: **Key Decisions**, **Discussion Points**, **Action Items**, and **Open Questions**.
+
+To customize it, open `analyze_and_upload.py` and edit the `prompt = f"""..."""` string inside the `analyze_transcript_with_api` function. You can change what sections are extracted, adjust the tone, or add instructions specific to your team. Just keep the four section headers (`KEY DECISIONS:`, `DISCUSSION POINTS:`, `ACTION ITEMS:`, `OPEN QUESTIONS:`) since the parser expects them — or update the parsing logic below the prompt to match your new headers.
+
 ## Transcript File Format
 
 For best results, include a date in the filename:
