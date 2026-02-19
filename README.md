@@ -5,9 +5,8 @@ Automatically summarizes meeting transcripts using Claude and uploads them to Co
 ## Quick Start
 
 ```bash
-# 1. Clone or copy this folder to your machine
-# 2. Run setup
-chmod +x setup.sh
+git clone https://github.com/justinyan-datadog/meeting-summarizer.git meeting-summarizer-tool
+cd meeting-summarizer-tool
 ./setup.sh
 ```
 
@@ -49,7 +48,7 @@ The setup script will:
 ## Manual Usage
 
 ```bash
-# Process all new transcripts
+cd ~/meeting-summarizer-tool
 ./run_uploader.sh
 
 # Or run the Python script directly
@@ -62,11 +61,11 @@ All settings are stored in `.confluence_config.json` (created by `setup.sh`):
 
 ```json
 {
-  "confluence_url": "https://yourcompany.atlassian.net/wiki",
-  "confluence_email": "you@company.com",
+  "confluence_url": "https://datadoghq.atlassian.net/wiki",
+  "confluence_email": "first.last@datadoghq.com",
   "confluence_api_token": "YOUR_TOKEN",
-  "space_key": "TEAM",
-  "parent_page_id": "12345",
+  "space_key": "~7120202f...",
+  "parent_page_id": "6257442955",
   "anthropic_api_key": "sk-ant-..."
 }
 ```
