@@ -63,11 +63,11 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 if [ "${SKIP_CONFIG:-}" != "true" ]; then
-    read -p "Confluence base URL (e.g. https://yourcompany.atlassian.net/wiki): " CONFLUENCE_URL
-    # Strip trailing slash
-    CONFLUENCE_URL="${CONFLUENCE_URL%/}"
+    CONFLUENCE_URL="https://datadoghq.atlassian.net/wiki"
+    echo "Confluence URL: $CONFLUENCE_URL"
+    echo ""
 
-    read -p "Your Confluence email: " CONFLUENCE_EMAIL
+    read -p "Your Datadog email (e.g. first.last@datadoghq.com): " CONFLUENCE_EMAIL
 
     echo ""
     echo "You need a Confluence API token."
@@ -75,12 +75,26 @@ if [ "${SKIP_CONFIG:-}" != "true" ]; then
     read -sp "Confluence API token: " CONFLUENCE_TOKEN
     echo ""
 
-    read -p "Confluence space key (e.g. TEAM or ~username for personal): " SPACE_KEY
+    echo ""
+    echo "Your space key and parent page ID can be found in any Confluence page URL:"
+    echo ""
+    echo "  https://datadoghq.atlassian.net/wiki/spaces/SPACE_KEY/pages/PAGE_ID/Page-Title"
+    echo "                                               ^^^^^^^^^       ^^^^^^^"
+    echo ""
+    echo "Example:"
+    echo "  https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting-Summarizer"
+    echo "  Space key: ~7120202f..."
+    echo "  Page ID:   6257442955"
+    echo ""
+    echo "For personal spaces, the space key starts with ~ followed by a long ID."
+    echo "For team spaces, it's a short code like TEAM or ENG."
+    echo ""
+    read -p "Confluence space key: " SPACE_KEY
 
     echo ""
-    echo "Optional: If you want meeting notes as children of a specific page,"
-    echo "provide that page's ID. You can find it in the page URL."
-    read -p "Parent page ID (leave blank to skip): " PARENT_PAGE_ID
+    echo "The parent page ID is the number after /pages/ in the URL."
+    echo "Meeting notes will be created as children of this page."
+    read -p "Parent page ID: " PARENT_PAGE_ID
 
     echo ""
     echo "--- Step 3: Anthropic API key ---"
@@ -220,5 +234,5 @@ else
     echo "  2. Run: cd $SCRIPT_DIR && ./run_uploader.sh"
 fi
 echo ""
-echo "Logs: $SCRIPT_DIR/automator.log"
+echo "Logs: ~/Library/Logs/meeting-summarizer/automator.log"
 echo ""
