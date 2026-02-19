@@ -76,25 +76,29 @@ if [ "${SKIP_CONFIG:-}" != "true" ]; then
     echo ""
 
     echo ""
-    echo "Your space key and parent page ID can be found in any Confluence page URL:"
+    echo "Paste the URL of the Confluence page where you want meeting notes stored."
+    echo "Meeting notes will be created as children of this page."
     echo ""
-    echo "  https://datadoghq.atlassian.net/wiki/spaces/SPACE_KEY/pages/PAGE_ID/Page-Title"
-    echo "                                               ^^^^^^^^^       ^^^^^^^"
+    echo "Example: https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting+Summarizer"
     echo ""
-    echo "Example:"
-    echo "  https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting-Summarizer"
-    echo "  Space key: ~7120202f..."
-    echo "  Page ID:   6257442955"
-    echo ""
-    echo "For personal spaces, the space key starts with ~ followed by a long ID."
-    echo "For team spaces, it's a short code like TEAM or ENG."
-    echo ""
-    read -p "Confluence space key: " SPACE_KEY
+    read -p "Confluence page URL: " CONFLUENCE_PAGE_URL
+
+    # Extract space key and page ID from URL
+    # URL format: .../wiki/spaces/SPACE_KEY/pages/PAGE_ID/...
+    SPACE_KEY=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/spaces/\([^/]*\)/pages/.*|\1|p')
+    PARENT_PAGE_ID=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/pages/\([0-9]*\).*|\1|p')
+
+    if [ -z "$SPACE_KEY" ] || [ -z "$PARENT_PAGE_ID" ]; then
+        echo ""
+        echo "Error: Could not parse space key or page ID from that URL."
+        echo "Expected format: https://datadoghq.atlassian.net/wiki/spaces/SPACE_KEY/pages/PAGE_ID/..."
+        exit 1
+    fi
 
     echo ""
-    echo "The parent page ID is the number after /pages/ in the URL."
-    echo "Meeting notes will be created as children of this page."
-    read -p "Parent page ID: " PARENT_PAGE_ID
+    echo "Detected:"
+    echo "  Space key:    $SPACE_KEY"
+    echo "  Parent page:  $PARENT_PAGE_ID"
 
     echo ""
     echo "--- Step 3: Anthropic API key ---"
