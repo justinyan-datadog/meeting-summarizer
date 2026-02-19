@@ -76,10 +76,16 @@ if [ "${SKIP_CONFIG:-}" != "true" ]; then
     echo ""
 
     echo ""
-    echo "Paste the URL of the Confluence page where you want meeting notes stored."
-    echo "Meeting notes will be created as children of this page."
+    echo "Next, create a new Confluence page to serve as your meeting notes directory."
+    echo "This page will contain a table of all your meetings. Individual meeting"
+    echo "summaries will be created as child pages underneath it."
     echo ""
-    echo "Example: https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting+Summarizer"
+    echo "Steps:"
+    echo "  1. Go to Confluence and create a new page (e.g. 'Meeting Notes Directory')"
+    echo "  2. Save the page (it can be empty)"
+    echo "  3. Copy the URL from your browser and paste it below"
+    echo ""
+    echo "Example URL: https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting+Notes+Directory"
     echo ""
     read -p "Confluence page URL: " CONFLUENCE_PAGE_URL
 
