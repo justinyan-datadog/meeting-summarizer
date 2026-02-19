@@ -63,12 +63,14 @@ All settings are stored in `.confluence_config.json` (created by `setup.sh`):
 {
   "confluence_url": "https://datadoghq.atlassian.net/wiki",
   "confluence_email": "first.last@datadoghq.com",
-  "confluence_api_token": "YOUR_TOKEN",
-  "space_key": "~7120202f...",
-  "parent_page_id": "6257442955",
-  "anthropic_api_key": "sk-ant-..."
+  "confluence_api_token": "<your-token>",
+  "space_key": "<extracted-from-url>",
+  "parent_page_id": "<extracted-from-url>",
+  "anthropic_api_key": "<your-key>"
 }
 ```
+
+The `space_key` and `parent_page_id` are automatically extracted from the Confluence page URL you provide during setup.
 
 ## Transcript File Format
 
