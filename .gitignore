@@ -1,0 +1,22 @@
+# Credentials - never commit
+.confluence_config.json
+
+# Local state
+.processed_transcripts.json
+.transcript_analyses.json
+.processed_transcripts
+.analyses/
+
+# Transcript files (private meeting content)
+*.txt
+!EXAMPLE_transcript.txt
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
