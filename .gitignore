@@ -1,6 +1,9 @@
 # Credentials - never commit
 .confluence_config.json
 
+# Machine-specific
+.python_path
+
 # Local state
 .processed_transcripts.json
 .transcript_analyses.json

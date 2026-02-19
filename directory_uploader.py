@@ -283,6 +283,13 @@ class DirectoryUploader:
                 page_id = result['id']
                 page_url = f"{self.config['confluence_url']}/spaces/{self.config['space_key']}/pages/{page_id}"
                 return page_url, page_id
+            elif response.status_code == 400 and "title already" in response.text.lower():
+                # Page already exists — find it and return its info
+                print(f"   Page already exists, looking it up...")
+                existing = self.find_page_by_title(title)
+                if existing:
+                    return existing
+                return None, None
             else:
                 print(f"   Error creating page: {response.status_code}")
                 print(f"      {response.text[:200]}")
@@ -291,6 +298,28 @@ class DirectoryUploader:
         except Exception as e:
             print(f"   Error: {e}")
             return None, None
+
+    def find_page_by_title(self, title):
+        """Find an existing page by title and return (url, id)."""
+        url = f"{self.config['confluence_url']}/rest/api/content"
+        auth = (self.config["confluence_email"], self.config["confluence_api_token"])
+        params = {
+            "title": title,
+            "spaceKey": self.config["space_key"],
+            "type": "page"
+        }
+        try:
+            response = requests.get(url, params=params, auth=auth)
+            if response.status_code == 200:
+                results = response.json().get("results", [])
+                if results:
+                    page_id = results[0]["id"]
+                    page_url = f"{self.config['confluence_url']}/spaces/{self.config['space_key']}/pages/{page_id}"
+                    print(f"   Found existing page: {page_url}")
+                    return page_url, page_id
+        except Exception as e:
+            print(f"   Error searching for page: {e}")
+        return None, None
 
     def update_directory_page(self):
         """Update the directory page with all meetings."""
@@ -352,12 +381,13 @@ class DirectoryUploader:
             if response.status_code == 200:
                 current = response.json()
                 current_version = current['version']['number']
+                current_title = current['title']
 
                 # Update page
                 update_data = {
                     "id": self.directory_page_id,
                     "type": "page",
-                    "title": "Meeting Notes Directory",
+                    "title": current_title,
                     "space": {"key": self.config["space_key"]},
                     "body": {
                         "storage": {

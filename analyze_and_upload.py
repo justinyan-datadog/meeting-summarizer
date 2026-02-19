@@ -135,11 +135,10 @@ Here is the transcript to analyze:
         return None
 
     except ImportError:
-        print(f"   Anthropic package not installed. Installing...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'anthropic'],
-                      capture_output=True)
-        # Retry after installation
-        return analyze_transcript_with_api(filepath, api_key)
+        print("   Error: 'anthropic' package not installed.")
+        print("   Run: pip3 install anthropic")
+        print("   Or re-run setup.sh")
+        return None
     except Exception as e:
         print(f"   Error: API error: {e}")
         return None

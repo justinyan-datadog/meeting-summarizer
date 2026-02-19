@@ -34,12 +34,17 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
+PYTHON_FULL_PATH="$(which python3)"
 PYTHON_VERSION=$(python3 --version 2>&1)
-echo "Found: $PYTHON_VERSION"
+echo "Found: $PYTHON_VERSION ($PYTHON_FULL_PATH)"
 
 echo "Installing required packages..."
 python3 -m pip install --quiet requests anthropic
 echo "Done."
+
+# Save Python path so launchd/Automator can find the right one
+echo "$PYTHON_FULL_PATH" > "$SCRIPT_DIR/.python_path"
+echo "Saved Python path for automation: $PYTHON_FULL_PATH"
 echo ""
 
 # -----------------------------------------------
@@ -137,7 +142,8 @@ if [[ "$INSTALL_AGENT" =~ ^[Yy]$ ]]; then
     PLIST_DIR="$HOME/Library/LaunchAgents"
     PLIST_FILE="$PLIST_DIR/$PLIST_NAME.plist"
 
-    mkdir -p "$PLIST_DIR"
+    LOG_DIR="$HOME/Library/Logs/meeting-summarizer"
+    mkdir -p "$PLIST_DIR" "$LOG_DIR"
 
     cat > "$PLIST_FILE" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -159,10 +165,10 @@ if [[ "$INSTALL_AGENT" =~ ^[Yy]$ ]]; then
     </array>
 
     <key>StandardOutPath</key>
-    <string>$SCRIPT_DIR/uploader.log</string>
+    <string>$LOG_DIR/uploader.log</string>
 
     <key>StandardErrorPath</key>
-    <string>$SCRIPT_DIR/uploader.error.log</string>
+    <string>$LOG_DIR/uploader.error.log</string>
 </dict>
 </plist>
 EOF
@@ -195,7 +201,7 @@ with open('$CONFIG_FILE') as f:
 required = ['confluence_url', 'confluence_email', 'confluence_api_token', 'anthropic_api_key']
 missing = [k for k in required if not cfg.get(k)]
 if missing:
-    print(f'Warning: Missing values for: {', '.join(missing)}')
+    print('Warning: Missing values for: ' + ', '.join(missing))
     print('Edit $CONFIG_FILE to add them.')
 else:
     print('Config looks good - all required fields are set.')
