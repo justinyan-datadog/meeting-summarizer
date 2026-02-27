@@ -14,7 +14,7 @@ from datetime import datetime
 import requests
 
 # Configuration
-MEETINGS_DIR = Path(__file__).resolve().parent
+MEETINGS_DIR = Path(__file__).resolve().parent.parent
 STATE_FILE = MEETINGS_DIR / ".processed_transcripts.json"
 CONFIG_FILE = MEETINGS_DIR / ".confluence_config.json"
 

@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-MEETINGS_DIR = Path(__file__).resolve().parent
+MEETINGS_DIR = Path(__file__).resolve().parent.parent
 STATE_FILE = MEETINGS_DIR / ".processed_transcripts.json"
 ANALYSIS_DIR = MEETINGS_DIR / ".analyses"
 

@@ -3,6 +3,7 @@
 
 # Auto-detect directory from script location
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Log file - stored outside the watched directory to avoid retriggering launchd
 LOG_DIR="$HOME/Library/Logs/meeting-summarizer"
@@ -14,12 +15,12 @@ exec >> "$LOG_FILE" 2>&1
 
 echo "=== Automator run started at $(date) ==="
 
-cd "$SCRIPT_DIR"
+cd "$ROOT_DIR"
 
 # Find the right Python - launchd has a minimal PATH so we check common locations
 PYTHON_PATH=""
-if [ -f "$SCRIPT_DIR/.python_path" ]; then
-    PYTHON_PATH="$(cat "$SCRIPT_DIR/.python_path")"
+if [ -f "$ROOT_DIR/.python_path" ]; then
+    PYTHON_PATH="$(cat "$ROOT_DIR/.python_path")"
 fi
 
 if [ -z "$PYTHON_PATH" ] || [ ! -x "$PYTHON_PATH" ]; then
@@ -42,7 +43,7 @@ if [ -z "$PYTHON_PATH" ]; then
 fi
 
 echo "Using Python: $PYTHON_PATH"
-"$PYTHON_PATH" analyze_and_upload.py
+"$PYTHON_PATH" "$SCRIPT_DIR/analyze_and_upload.py"
 
 # Display notification when done
 if [ $? -eq 0 ]; then
