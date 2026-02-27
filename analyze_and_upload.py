@@ -14,6 +14,7 @@ import subprocess
 MEETINGS_DIR = Path(__file__).resolve().parent
 ANALYSES_FILE = MEETINGS_DIR / ".transcript_analyses.json"
 CONFIG_FILE = MEETINGS_DIR / ".confluence_config.json"
+SUMMARIES_DIR = MEETINGS_DIR / "summaries"
 
 def load_config():
     """Load configuration."""
@@ -43,6 +44,33 @@ def markdown_to_html(text):
     # Convert inline code (`text`)
     text = re.sub(r'`(.+?)`', r'<code>\1</code>', text)
     return text
+
+def save_summary_to_file(filename, analysis):
+    """Write analysis as a markdown file to the summaries/ folder."""
+    SUMMARIES_DIR.mkdir(exist_ok=True)
+    stem = Path(filename).stem
+    output_path = SUMMARIES_DIR / f"{stem}.md"
+
+    sections = [
+        ("Key Decisions", analysis.get("key_decisions", [])),
+        ("Discussion Points", analysis.get("discussion_points", [])),
+        ("Action Items", analysis.get("action_items", [])),
+        ("Open Questions", analysis.get("open_questions", [])),
+    ]
+
+    lines = [f"# {stem}\n"]
+    for title, items in sections:
+        lines.append(f"## {title}\n")
+        if items:
+            for item in items:
+                lines.append(f"- {item}")
+        else:
+            lines.append("- None")
+        lines.append("")
+
+    output_path.write_text("\n".join(lines))
+    print(f"   Summary saved to summaries/{stem}.md")
+
 
 def analyze_transcript_with_api(filepath, api_key):
     """
@@ -176,6 +204,7 @@ def main():
             if analysis:
                 analyses[filename] = analysis
                 new_analyses = True
+                save_summary_to_file(filename, analysis)
                 print(f"   Analysis complete!\n")
             else:
                 print(f"   Analysis failed - skipping this file\n")
