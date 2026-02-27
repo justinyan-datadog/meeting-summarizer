@@ -2,7 +2,7 @@
 
 # Configuration - auto-detect directory from script location
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MEETINGS_DIR="$SCRIPT_DIR"
+MEETINGS_DIR="$(dirname "$SCRIPT_DIR")"
 STATE_FILE="$MEETINGS_DIR/.processed_transcripts"
 CONFIG_FILE="$MEETINGS_DIR/.confluence_config.json"
 

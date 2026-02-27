@@ -7,7 +7,7 @@ Automatically summarizes meeting transcripts using Claude and uploads them to Co
 ```bash
 git clone https://github.com/justinyan-datadog/meeting-summarizer.git meeting-summarizer-tool
 cd meeting-summarizer-tool
-./setup.sh
+./scripts/setup.sh
 ```
 
 The setup script will:
@@ -17,26 +17,45 @@ The setup script will:
 
 ## How It Works
 
-1. Drop a `.txt` meeting transcript file into this folder
+1. Drop a `.txt` meeting transcript file into the root folder
 2. The automation detects the new file and:
    - Sends the transcript to Claude for analysis
    - Extracts key decisions, discussion points, action items, and open questions
+   - Saves a local markdown summary to the `summaries/` folder
    - Creates a Confluence page with the structured summary
    - Attaches the raw transcript file
    - Updates a directory page linking all meetings
 
-## Files
+## Folder Structure
+
+```
+meeting-summarizer-tool/
+├── your-meeting.txt        ← drop transcript files here
+├── summaries/              ← local markdown summaries are saved here
+├── scripts/                ← all automation scripts
+│   ├── setup.sh
+│   ├── run_uploader.sh
+│   ├── analyze_and_upload.py
+│   ├── directory_uploader.py
+│   ├── confluence_uploader.py
+│   ├── smart_uploader.py
+│   ├── process_with_claude.py
+│   └── process_transcripts.sh
+└── .confluence_config.json ← created by setup.sh
+```
+
+## Scripts
 
 | Script | Purpose |
 |---|---|
-| `setup.sh` | One-time setup: credentials, dependencies, scheduling |
-| `run_uploader.sh` | Entry point wrapper (called by launchd or manually) |
-| `analyze_and_upload.py` | Main pipeline: analyze with Claude then upload |
-| `directory_uploader.py` | Creates/updates Confluence pages with directory |
-| `confluence_uploader.py` | Standalone Confluence uploader with built-in analysis |
-| `smart_uploader.py` | Uploads using pre-generated analyses |
-| `process_with_claude.py` | Prepares transcripts for batch analysis |
-| `process_transcripts.sh` | Shell-based transcript processor |
+| `scripts/setup.sh` | One-time setup: credentials, dependencies, scheduling |
+| `scripts/run_uploader.sh` | Entry point wrapper (called by launchd or manually) |
+| `scripts/analyze_and_upload.py` | Main pipeline: analyze with Claude then upload |
+| `scripts/directory_uploader.py` | Creates/updates Confluence pages with directory |
+| `scripts/confluence_uploader.py` | Standalone Confluence uploader with built-in analysis |
+| `scripts/smart_uploader.py` | Uploads using pre-generated analyses |
+| `scripts/process_with_claude.py` | Prepares transcripts for batch analysis |
+| `scripts/process_transcripts.sh` | Shell-based transcript processor |
 
 ## Requirements
 
@@ -49,10 +68,10 @@ The setup script will:
 
 ```bash
 cd ~/meeting-summarizer-tool
-./run_uploader.sh
+./scripts/run_uploader.sh
 
 # Or run the Python script directly
-python3 analyze_and_upload.py
+python3 scripts/analyze_and_upload.py
 ```
 
 ## Configuration
@@ -92,7 +111,7 @@ Do not include small talk, repetition, or off-topic discussion.
 
 It asks Claude to return four sections: **Key Decisions**, **Discussion Points**, **Action Items**, and **Open Questions**.
 
-To customize it, open `analyze_and_upload.py` and edit the `prompt = f"""..."""` string inside the `analyze_transcript_with_api` function. You can change what sections are extracted, adjust the tone, or add instructions specific to your team. Just keep the four section headers (`KEY DECISIONS:`, `DISCUSSION POINTS:`, `ACTION ITEMS:`, `OPEN QUESTIONS:`) since the parser expects them — or update the parsing logic below the prompt to match your new headers.
+To customize it, open `scripts/analyze_and_upload.py` and edit the `prompt = f"""..."""` string inside the `analyze_transcript_with_api` function. You can change what sections are extracted, adjust the tone, or add instructions specific to your team. Just keep the four section headers (`KEY DECISIONS:`, `DISCUSSION POINTS:`, `ACTION ITEMS:`, `OPEN QUESTIONS:`) since the parser expects them — or update the parsing logic below the prompt to match your new headers.
 
 ## Transcript File Format
 

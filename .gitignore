@@ -9,7 +9,6 @@
 .transcript_analyses.json
 .processed_transcripts
 .analyses/
-summaries/
 
 # Transcript files (private meeting content)
 *.txt

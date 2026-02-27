@@ -10,7 +10,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/.confluence_config.json"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+CONFIG_FILE="$ROOT_DIR/.confluence_config.json"
 PLIST_NAME="com.meetings.uploader"
 
 echo "========================================"
@@ -20,7 +21,7 @@ echo ""
 echo "This script will configure the meeting transcript"
 echo "summarizer for your machine."
 echo ""
-echo "Scripts directory: $SCRIPT_DIR"
+echo "Root directory: $ROOT_DIR"
 echo ""
 
 # -----------------------------------------------
@@ -43,7 +44,7 @@ python3 -m pip install --quiet requests anthropic
 echo "Done."
 
 # Save Python path so launchd/Automator can find the right one
-echo "$PYTHON_FULL_PATH" > "$SCRIPT_DIR/.python_path"
+echo "$PYTHON_FULL_PATH" > "$ROOT_DIR/.python_path"
 echo "Saved Python path for automation: $PYTHON_FULL_PATH"
 echo ""
 
@@ -158,7 +159,7 @@ echo "--- Step 5: Automatic scheduling (optional) ---"
 echo ""
 echo "You can install a macOS launchd agent that automatically"
 echo "processes new .txt files whenever they appear in:"
-echo "  $SCRIPT_DIR"
+echo "  $ROOT_DIR"
 echo ""
 read -p "Install the launchd agent? (y/N): " INSTALL_AGENT
 
@@ -185,7 +186,7 @@ if [[ "$INSTALL_AGENT" =~ ^[Yy]$ ]]; then
 
     <key>WatchPaths</key>
     <array>
-        <string>$SCRIPT_DIR</string>
+        <string>$ROOT_DIR</string>
     </array>
 
     <key>StandardOutPath</key>
@@ -203,10 +204,10 @@ EOF
     launchctl bootstrap "gui/$(id -u)" "$PLIST_FILE"
     echo "Launchd agent installed and loaded."
     echo "  Plist: $PLIST_FILE"
-    echo "  It will trigger whenever files change in: $SCRIPT_DIR"
+    echo "  It will trigger whenever files change in: $ROOT_DIR"
 else
     echo "Skipped. You can always run manually:"
-    echo "  cd $SCRIPT_DIR && ./run_uploader.sh"
+    echo "  cd $ROOT_DIR && ./scripts/run_uploader.sh"
 fi
 
 echo ""
@@ -237,11 +238,11 @@ echo "  Setup complete!"
 echo "========================================"
 echo ""
 echo "To process transcripts:"
-echo "  1. Drop .txt transcript files into: $SCRIPT_DIR"
+echo "  1. Drop .txt transcript files into: $ROOT_DIR"
 if [[ "$INSTALL_AGENT" =~ ^[Yy]$ ]]; then
     echo "  2. They will be processed automatically."
 else
-    echo "  2. Run: cd $SCRIPT_DIR && ./run_uploader.sh"
+    echo "  2. Run: cd $ROOT_DIR && ./scripts/run_uploader.sh"
 fi
 echo ""
 echo "Logs: ~/Library/Logs/meeting-summarizer/automator.log"
