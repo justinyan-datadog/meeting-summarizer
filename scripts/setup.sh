@@ -49,9 +49,9 @@ echo "Saved Python path for automation: $PYTHON_FULL_PATH"
 echo ""
 
 # -----------------------------------------------
-# 2. Gather Confluence credentials
+# 2. Anthropic API key (required)
 # -----------------------------------------------
-echo "--- Step 2: Confluence configuration ---"
+echo "--- Step 2: Anthropic API key (required) ---"
 echo ""
 
 if [ -f "$CONFIG_FILE" ]; then
@@ -64,72 +64,84 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 if [ "${SKIP_CONFIG:-}" != "true" ]; then
-    CONFLUENCE_URL="https://datadoghq.atlassian.net/wiki"
-    echo "Confluence URL: $CONFLUENCE_URL"
-    echo ""
-
-    read -p "Your Datadog email (e.g. first.last@datadoghq.com): " CONFLUENCE_EMAIL
-
-    echo ""
-    echo "You need a Confluence API token."
-    echo "Create one at: https://id.atlassian.com/manage-profile/security/api-tokens"
-    read -sp "Confluence API token: " CONFLUENCE_TOKEN
-    echo ""
-
-    echo ""
-    echo "Next, create a new Confluence page to serve as your meeting notes directory."
-    echo "This page will contain a table of all your meetings. Individual meeting"
-    echo "summaries will be created as child pages underneath it."
-    echo ""
-    echo "Steps:"
-    echo "  1. Go to Confluence and create a new page (e.g. 'Meeting Notes Directory')"
-    echo "  2. Save the page (it can be empty)"
-    echo "  3. Copy the URL from your browser and paste it below"
-    echo ""
-    echo "Example URL: https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting+Notes+Directory"
-    echo ""
-    read -p "Confluence page URL: " CONFLUENCE_PAGE_URL
-
-    # Extract space key and page ID from URL
-    # URL format: .../wiki/spaces/SPACE_KEY/pages/PAGE_ID/...
-    SPACE_KEY=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/spaces/\([^/]*\)/pages/.*|\1|p')
-    PARENT_PAGE_ID=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/pages/\([0-9]*\).*|\1|p')
-
-    if [ -z "$SPACE_KEY" ] || [ -z "$PARENT_PAGE_ID" ]; then
-        echo ""
-        echo "Error: Could not parse space key or page ID from that URL."
-        echo "Expected format: https://datadoghq.atlassian.net/wiki/spaces/SPACE_KEY/pages/PAGE_ID/..."
-        exit 1
-    fi
-
-    echo ""
-    echo "Detected:"
-    echo "  Space key:    $SPACE_KEY"
-    echo "  Parent page:  $PARENT_PAGE_ID"
-
-    echo ""
-    echo "--- Step 3: Anthropic API key ---"
-    echo ""
     echo "The summarizer uses Claude to analyze transcripts."
     echo "Get an API key at: https://console.anthropic.com/settings/keys"
     read -sp "Anthropic API key: " ANTHROPIC_KEY
     echo ""
 
-    # Build config JSON
-    if [ -z "$PARENT_PAGE_ID" ]; then
-        PARENT_PAGE_JSON="null"
-    else
+    # -----------------------------------------------
+    # 3. Confluence upload (optional)
+    # -----------------------------------------------
+    echo ""
+    echo "--- Step 3: Confluence upload (optional) ---"
+    echo ""
+    echo "Summaries are always saved locally to the summaries/ folder."
+    echo "You can also upload them to a Confluence page automatically."
+    echo ""
+    read -p "Upload summaries to Confluence? (y/N): " SETUP_CONFLUENCE
+
+    CONFLUENCE_URL=""
+    CONFLUENCE_EMAIL=""
+    CONFLUENCE_TOKEN=""
+    SPACE_KEY=""
+    PARENT_PAGE_JSON="null"
+
+    if [[ "$SETUP_CONFLUENCE" =~ ^[Yy]$ ]]; then
+        CONFLUENCE_URL="https://datadoghq.atlassian.net/wiki"
+        echo ""
+        echo "Confluence URL: $CONFLUENCE_URL"
+        echo ""
+
+        read -p "Your Datadog email (e.g. first.last@datadoghq.com): " CONFLUENCE_EMAIL
+
+        echo ""
+        echo "You need a Confluence API token."
+        echo "Create one at: https://id.atlassian.com/manage-profile/security/api-tokens"
+        read -sp "Confluence API token: " CONFLUENCE_TOKEN
+        echo ""
+
+        echo ""
+        echo "Create a Confluence page to serve as your meeting notes directory."
+        echo "Individual meeting summaries will be created as child pages underneath it."
+        echo ""
+        echo "Steps:"
+        echo "  1. Go to Confluence and create a new page (e.g. 'Meeting Notes Directory')"
+        echo "  2. Save the page (it can be empty)"
+        echo "  3. Copy the URL from your browser and paste it below"
+        echo ""
+        echo "Example URL: https://datadoghq.atlassian.net/wiki/spaces/~7120202f.../pages/6257442955/Meeting+Notes+Directory"
+        echo ""
+        read -p "Confluence page URL: " CONFLUENCE_PAGE_URL
+
+        # Extract space key and page ID from URL
+        SPACE_KEY=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/spaces/\([^/]*\)/pages/.*|\1|p')
+        PARENT_PAGE_ID=$(echo "$CONFLUENCE_PAGE_URL" | sed -n 's|.*/pages/\([0-9]*\).*|\1|p')
+
+        if [ -z "$SPACE_KEY" ] || [ -z "$PARENT_PAGE_ID" ]; then
+            echo ""
+            echo "Error: Could not parse space key or page ID from that URL."
+            echo "Expected format: https://datadoghq.atlassian.net/wiki/spaces/SPACE_KEY/pages/PAGE_ID/..."
+            exit 1
+        fi
+
         PARENT_PAGE_JSON="\"$PARENT_PAGE_ID\""
+
+        echo ""
+        echo "Detected:"
+        echo "  Space key:    $SPACE_KEY"
+        echo "  Parent page:  $PARENT_PAGE_ID"
+    else
+        echo "Skipping Confluence setup. Summaries will only be saved locally."
     fi
 
     cat > "$CONFIG_FILE" << EOF
 {
+  "anthropic_api_key": "$ANTHROPIC_KEY",
   "confluence_url": "$CONFLUENCE_URL",
   "confluence_email": "$CONFLUENCE_EMAIL",
   "confluence_api_token": "$CONFLUENCE_TOKEN",
   "space_key": "$SPACE_KEY",
-  "parent_page_id": $PARENT_PAGE_JSON,
-  "anthropic_api_key": "$ANTHROPIC_KEY"
+  "parent_page_id": $PARENT_PAGE_JSON
 }
 EOF
 
@@ -223,13 +235,12 @@ python3 -c "
 import json, sys
 with open('$CONFIG_FILE') as f:
     cfg = json.load(f)
-required = ['confluence_url', 'confluence_email', 'confluence_api_token', 'anthropic_api_key']
-missing = [k for k in required if not cfg.get(k)]
-if missing:
-    print('Warning: Missing values for: ' + ', '.join(missing))
-    print('Edit $CONFIG_FILE to add them.')
+if not cfg.get('anthropic_api_key'):
+    print('Warning: Anthropic API key is missing. Edit $CONFIG_FILE to add it.')
+elif cfg.get('confluence_api_token'):
+    print('Config looks good - Claude + Confluence configured.')
 else:
-    print('Config looks good - all required fields are set.')
+    print('Config looks good - Claude configured. Summaries will be saved locally only.')
 "
 
 echo ""

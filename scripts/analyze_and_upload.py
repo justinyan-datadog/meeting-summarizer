@@ -18,6 +18,8 @@ SUMMARIES_DIR = MEETINGS_DIR / "summaries"
 
 def load_config():
     """Load configuration."""
+    if not CONFIG_FILE.exists():
+        return {}
     with open(CONFIG_FILE, 'r') as f:
         return json.load(f)
 
@@ -215,6 +217,10 @@ def main():
     if new_analyses:
         save_analyses(analyses)
         print(f"Saved {len([k for k in analyses.keys()])} total analyses\n")
+
+        if not config.get('confluence_api_token'):
+            print("Confluence not configured — skipping upload. Summaries saved to summaries/")
+            return 0
 
         # Now run the uploader
         print("Running uploader...\n")
