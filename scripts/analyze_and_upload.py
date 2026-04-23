@@ -220,7 +220,7 @@ def main():
         print("Running uploader...\n")
         try:
             result = subprocess.run(
-                [sys.executable, str(MEETINGS_DIR / "directory_uploader.py")],
+                [sys.executable, str(Path(__file__).resolve().parent / "directory_uploader.py")],
                 capture_output=True,
                 text=True,
                 cwd=str(MEETINGS_DIR)
